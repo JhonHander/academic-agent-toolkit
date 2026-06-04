@@ -26,7 +26,7 @@ CANONICAL_ARS_LINK = CANONICAL_SKILL_DIR / "ars"
 CLAUDE_MCP_DIR = Path.home() / ".claude" / "mcp"
 CLAUDE_MCP_PATH = CLAUDE_MCP_DIR / f"{SERVER_NAME}.json"
 ARS_REPO_URL = "https://github.com/Imbad0202/academic-research-skills"
-ARS_REF = "v3.9.4.2"
+ARS_REF = "v3.10.0"
 ARS_ARCHIVE_URL = f"{ARS_REPO_URL}/archive/refs/tags/{ARS_REF}.zip"
 EXPERIMENT_AGENT_REPO_URL = "https://github.com/Imbad0202/experiment-agent"
 EXPERIMENT_AGENT_REF = "v1.1.0"
@@ -691,8 +691,9 @@ def merge_codex_config(env_file: Path, dry_run: bool, replace: bool) -> str:
         before, rest = current.split(begin, 1)
         _, after = rest.split(end, 1)
         next_text = before.rstrip() + "\n\n" + block + after.lstrip("\n")
-    elif SERVER_NAME in current and not replace:
-        return "adopted existing MCP config for codex; rerun with --replace-mcp to manage it"
+    elif SERVER_NAME in current:
+        # Inline config exists (without our markers). Replace it with managed block.
+        next_text = _replace_inline_codex_config(current, SERVER_NAME, block)
     else:
         next_text = current.rstrip() + "\n\n" + block
     if dry_run:
@@ -702,6 +703,41 @@ def merge_codex_config(env_file: Path, dry_run: bool, replace: bool) -> str:
         backup(path)
     path.write_text(next_text, encoding="utf-8")
     return "merged MCP config for codex"
+
+
+def _replace_inline_codex_config(text: str, server_name: str, block: str) -> str:
+    """Replace an inline [mcp_servers.{server_name}] section with our managed block."""
+    section_header = f"[mcp_servers.{server_name}]"
+    lines = text.split("\n")
+    start_idx = None
+    end_idx = None
+
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped == section_header:
+            start_idx = i
+        elif start_idx is not None and stripped.startswith("[") and not stripped.startswith(f"[mcp_servers.{server_name}."):
+            end_idx = i
+            break
+
+    if start_idx is None:
+        # Section header not found as exact match; append block
+        return text.rstrip() + "\n\n" + block
+
+    if end_idx is None:
+        end_idx = len(lines)
+
+    # Remove any comment markers that might precede the section
+    while start_idx > 0 and lines[start_idx - 1].strip().startswith("#"):
+        start_idx -= 1
+
+    # Remove trailing blank lines before the next section
+    while end_idx > start_idx and lines[end_idx - 1].strip() == "":
+        end_idx -= 1
+
+    before = "\n".join(lines[:start_idx]).rstrip()
+    after = "\n".join(lines[end_idx:]).lstrip("\n")
+    return before + "\n\n" + block + after
 
 
 def install_all(
@@ -969,10 +1005,12 @@ def doctor_summary(config: ToolkitConfig | None = None) -> dict:
     ars_source = discover_ars_source(current)
     ars_valid = validate_ars_source(ars_source)[0] if ars_source else False
     env_file = current.env_file_path or DEFAULT_ENV_FILE
+    managed_ars_source = managed_ars_source_path()
     return {
         "ars_source": ars_source,
         "ars_valid": ars_valid,
-        "managed_ars_source": managed_ars_source_path(),
+        "managed_ars_source": managed_ars_source,
+        "managed_ars_exists": managed_ars_source.exists(),
         "ars_ref": MANAGED_ARS_VERSION,
         "env_file": env_file,
         "env_exists": env_file.exists(),

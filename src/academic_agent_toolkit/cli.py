@@ -78,7 +78,7 @@ def doctor() -> None:
     ars_status = status_label(summary["ars_valid"])
     ars_detail = summary["ars_source"] or f"not installed; can bootstrap {summary['ars_ref']}"
     console.print(f"  ARS source: {ars_status} {ars_detail}")
-    console.print(f"  Managed ARS: {summary['managed_ars_source']}")
+    console.print(f"  Managed ARS: {status_label(summary['managed_ars_exists'])} {summary['managed_ars_source']}")
     console.print(f"  Env file:   {env_status} {summary['env_file']}")
 
     table = make_table(title="Agent Detection", columns=["Agent", "Detected", "Skills", "MCP", "Notes"])

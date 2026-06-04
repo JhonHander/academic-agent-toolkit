@@ -174,8 +174,8 @@ Removes only files AAT created. Your existing hand-written configs and skill dir
 
 AAT is an integration layer. It bundles and configures these upstream projects with their permission:
 
-- [academic-research-skills](https://github.com/Imbad0202/academic-research-skills) by Imbad0202
-- [experiment-agent](https://github.com/Imbad0202/experiment-agent) by Imbad0202
+- [academic-research-skills](https://github.com/Imbad0202/academic-research-skills) by Imbad0202 — **v3.10.0**
+- [experiment-agent](https://github.com/Imbad0202/experiment-agent) by Imbad0202 — **v1.1.0**
 - [paper-search-mcp](https://github.com/openags/paper-search-mcp) by openags
 
 ---
