@@ -1,4 +1,6 @@
-<img src="public/banner.png" alt="Academic Agent Toolkit Banner" style="border-radius: 15px;">
+<p align="center">
+  <img src="public/banner-rounded.png" alt="Academic Agent Toolkit Banner" width="100%">
+</p>
 
 # Academic Agent Toolkit (AAT)
 
