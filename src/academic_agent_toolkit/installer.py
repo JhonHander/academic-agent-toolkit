@@ -18,7 +18,9 @@ from academic_agent_toolkit.config import DATA_DIR, DEFAULT_ENV_FILE, ToolkitCon
 
 
 SERVER_NAME = "paper-search-mcp"
-MCP_COMMAND = ["uv", "run", "--with", "paper-search-mcp", "python", "-m", "paper_search_mcp.server"]
+# paper-search-mcp imports mcp.server.fastmcp, which mcp 2.x removed (renamed to MCPServer).
+# Without the pin, uv resolves mcp 2.x and the server crashes on import.
+MCP_COMMAND = ["uv", "run", "--with", "paper-search-mcp", "--with", "mcp<2", "python", "-m", "paper_search_mcp.server"]
 AGENTS_ROOT = Path.home() / ".agents"
 AGENTS_GLOBAL_FILE = AGENTS_ROOT / "AGENTS.md"
 CANONICAL_SKILL_DIR = AGENTS_ROOT / "skills" / "academic-research-suite"
